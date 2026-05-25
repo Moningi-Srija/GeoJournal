@@ -10,7 +10,7 @@ router.post('/', upload.array('images'), async(req, res)=>{
 
     const query = `INSERT INTO posts (user_id, title, body, latitude, longitude, location_name, is_public)
     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`
-    const values = [id, title, body, latitude, longitude, location_name, is_public]
+    const values = [id, title, body, latitude, longitude, location_name, is_public ?? true]
     const result = await pool.query(query, values)
 
     const photos = req.files
@@ -28,7 +28,7 @@ router.post('/', upload.array('images'), async(req, res)=>{
         const url = uploadResult.secure_url
         const query = `INSERT INTO post_photos (post_id, photo_url, caption, order_index)
         VALUES ($1, $2, $3, $4) RETURNING *`
-        const values = [result.rows[0].id, url, req.body.caption, req.body.order_index]
+        const values = [result.rows[0].id, url, req.body.caption || null, req.body.order_index || 0]
         const photoResult = await pool.query(query, values)
     }
     res.status(201).json(result.rows[0])

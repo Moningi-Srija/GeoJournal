@@ -28,6 +28,7 @@ CREATE TABLE posts (
     location_name VARCHAR(255),
     latitude DECIMAL(9,6) NOT NULL,
     longitude DECIMAL(9,6) NOT NULL,
+    is_public BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -35,5 +36,6 @@ CREATE TABLE post_photos (
     id SERIAL PRIMARY KEY,
     post_id INTEGER REFERENCES posts(id) ON DELETE CASCADE,
     photo_url TEXT NOT NULL,
+    caption TEXT,
     order_index INTEGER DEFAULT 0
 );
