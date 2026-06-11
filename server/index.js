@@ -14,6 +14,8 @@ app.use(cors({
     credentials: true
 }))
 
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }))
+
 app.use('/api/auth', authRouter)
 app.use('/api/posts', authCheck, postsRouter)
 app.use('/api/maps', authCheck, mapRouter)
