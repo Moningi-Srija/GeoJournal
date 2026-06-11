@@ -6,7 +6,15 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     avatar_url TEXT,
+    is_verified BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE verification_tokens (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    token TEXT UNIQUE NOT NULL,
+    expires_at TIMESTAMP NOT NULL
 );
 
 CREATE TYPE friendship_status AS ENUM ('pending', 'accepted');
