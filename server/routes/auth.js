@@ -17,35 +17,15 @@ router.post('/register', async (req, res) => {
         return res.status(400).json({ message: 'Email already registered' })
     }
 
-    const result = await pool.query(
-        'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id',
+    // TEMP: email verification disabled — new users are auto-verified.
+    // To re-enable, restore the token + transporter.sendMail block below and
+    // insert with is_verified defaulting to false.
+    await pool.query(
+        'INSERT INTO users (username, email, password, is_verified) VALUES ($1, $2, $3, true) RETURNING id',
         [username, email, password]
     )
-    const user_id = result.rows[0].id
 
-    const token = crypto.randomBytes(32).toString('hex')
-    const expires_at = new Date(Date.now() + 24 * 60 * 60 * 1000)
-    await pool.query(
-        'INSERT INTO verification_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)',
-        [user_id, token, expires_at]
-    )
-
-    const verifyUrl = `${process.env.SERVER_URL}/api/auth/verify/${token}`
-    await transporter.sendMail({
-        from: `"GeoJournal" <${process.env.GMAIL_USER}>`,
-        to: email,
-        subject: 'Verify your GeoJournal account',
-        html: `
-            <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
-                <h2 style="color: #3b82f6;">Welcome to GeoJournal, ${username}!</h2>
-                <p>Click the button below to verify your email address. This link expires in 24 hours.</p>
-                <a href="${verifyUrl}" style="display:inline-block;background:#3b82f6;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Verify Email</a>
-                <p style="color:#999;font-size:12px;margin-top:24px;">If you didn't create an account, ignore this email.</p>
-            </div>
-        `
-    })
-
-    res.status(201).json({ message: 'Registered! Check your email to verify your account.' })
+    res.status(201).json({ message: 'Successfully Registered' })
 })
 
 router.get('/verify/:token', async (req, res) => {
@@ -79,9 +59,10 @@ router.post('/login', async (req, res) => {
 
     const user = result.rows[0]
 
-    if (!user.is_verified) {
-        return res.status(403).json({ message: 'Please verify your email before logging in.' })
-    }
+    // TEMP: email verification check disabled — restore this block to re-enable.
+    // if (!user.is_verified) {
+    //     return res.status(403).json({ message: 'Please verify your email before logging in.' })
+    // }
 
     if (await bcrypt.compare(password, user.password)) {
         const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, { expiresIn: '7d' })
